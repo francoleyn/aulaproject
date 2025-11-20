@@ -14,7 +14,7 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "app/_layout.js",
-    "app/index.js",
+    "app/login.js",
     "nativewind-env.d.ts"
 , "components/SafeScreen.js"  ]
 }
