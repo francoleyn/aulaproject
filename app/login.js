@@ -12,7 +12,7 @@ import {
 import { useAuth } from "../hook/useAuth.js";
 import { useRouter } from "expo-router";
 
-export default function Login({ navigation }) {
+export default function Login() {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const { login, loading, error } = useAuth();
@@ -29,7 +29,8 @@ export default function Login({ navigation }) {
 
     if (result.success) {
       Alert.alert("Success", "Login successful!");
-      router.push("./dashboard");
+      // Navigate to the tabs group which contains dashboard
+      router.replace("/(tabs)");
     } else {
       Alert.alert("Login Failed", result.error || "Invalid credentials");
     }
@@ -56,6 +57,7 @@ export default function Login({ navigation }) {
             onChangeText={setUserName}
             autoCapitalize="none"
             autoCorrect={false}
+            editable={!loading}
           />
         </View>
 
@@ -67,6 +69,7 @@ export default function Login({ navigation }) {
             onChangeText={setPassword}
             secureTextEntry
             autoCapitalize="none"
+            editable={!loading}
           />
         </View>
 
@@ -86,16 +89,6 @@ export default function Login({ navigation }) {
           ) : (
             <Text className="text-white text-lg font-semibold">Login</Text>
           )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Register")}
-          className="mt-5 items-center"
-        >
-          <Text className="text-sm text-gray-600">
-            Don't have an account?{" "}
-            <Text className="text-blue-500 font-semibold">Sign Up</Text>
-          </Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
