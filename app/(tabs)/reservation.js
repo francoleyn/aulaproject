@@ -159,7 +159,7 @@ export default function Reservation() {
             />
             <Text className="text-gray-400 text-sm">
               {selectedRoom
-                ? `Room ${selectedRoom.roomnum} - ${selectedRoom.bldg}`
+                ? `${selectedRoom.roomnum} - ${selectedRoom.bldg}`
                 : "Select from available rooms"}
             </Text>
           </View>
@@ -184,7 +184,7 @@ export default function Reservation() {
                   className="p-4 border-b border-gray-700"
                 >
                   <Text className="text-white font-semibold mb-1">
-                    Room {room.roomnum}
+                    {room.roomnum}
                   </Text>
                   <Text className="text-gray-400 text-sm">
                     {room.bldg} - Floor {room.floornum} - Capacity:{" "}

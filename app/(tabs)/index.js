@@ -14,12 +14,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRoom } from "../../hook/useRoom.js";
 import { useRouter } from "expo-router";
 import { Bell, User } from "lucide-react-native";
+import RoomDetailsModal from "../../components/roomDetailsModal.js";
 
 export default function Dashboard({ navigation }) {
   const { getRooms, rooms, loading, error } = useRoom();
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -37,6 +40,16 @@ export default function Dashboard({ navigation }) {
     setRefreshing(true);
     await fetchRooms();
     setRefreshing(false);
+  };
+
+  const handleRoomPress = (room) => {
+    setSelectedRoom(room);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setSelectedRoom(null);
   };
 
   const filteredRooms = rooms.filter((room) => {
@@ -83,7 +96,7 @@ export default function Dashboard({ navigation }) {
         </View>
 
         {/* Stats Card */}
-        <View className="bg-gray-800  rounded-2xl p-6 mb-6 border border-blue-500 ">
+        <View className="bg-gray-800 rounded-2xl p-6 mb-6 border border-blue-500">
           <View className="flex-row items-center justify-between mx-5 pr-14">
             <View className="items-center grow-4">
               <Ionicons name="stats-chart" size={40} color="#fff" />
@@ -96,7 +109,7 @@ export default function Dashboard({ navigation }) {
         </View>
 
         {/* Search Bar */}
-        <View className="bg-gray-800  rounded-xl px-4 py-2 flex-row items-center mb-4">
+        <View className="bg-gray-800 rounded-xl px-4 py-2 flex-row items-center mb-4">
           <Ionicons name="search-outline" size={20} color="#9ca3af" />
           <TextInput
             className="flex-1 ml-3 text-gray-400 text-base"
@@ -119,7 +132,7 @@ export default function Dashboard({ navigation }) {
                 key={building}
                 onPress={() => setFilter(building)}
                 className={`px-6 py-2.5 rounded-full ${
-                  filter === building ? "bg-white" : "bg-gray-800 "
+                  filter === building ? "bg-white" : "bg-gray-800"
                 }`}
               >
                 <Text
@@ -156,8 +169,8 @@ export default function Dashboard({ navigation }) {
           filteredRooms.map((room) => (
             <TouchableOpacity
               key={room.id}
-              className="bg-gray-800  rounded-2xl p-5 mb-4 border border-blue-500"
-              onPress={() => navigation?.navigate("RoomDetails", { room })}
+              className="bg-gray-800 rounded-2xl p-5 mb-4 border border-blue-500"
+              onPress={() => handleRoomPress(room)}
             >
               <View className="flex-row justify-between items-start mb-3">
                 <Text className="text-white text-xl font-bold">
@@ -178,6 +191,13 @@ export default function Dashboard({ navigation }) {
           ))
         )}
       </ScrollView>
+
+      {/* Room Details Modal */}
+      <RoomDetailsModal
+        visible={modalVisible}
+        onClose={handleCloseModal}
+        room={selectedRoom}
+      />
     </View>
   );
 }

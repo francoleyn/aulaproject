@@ -2,6 +2,15 @@ import { Tabs } from "expo-router";
 import { House, CalendarClockIcon, Send } from "lucide-react-native";
 
 export default function _layout() {
+  const Tabicon = ({ focused, icon, size, color }) => {
+    const IconComponent = icon;
+
+    if (focused) {
+      return <IconComponent size={size} color="#fff" />;
+    }
+
+    return <IconComponent size={size} color={color} />;
+  };
   return (
     <Tabs
       screenOptions={{
@@ -23,15 +32,29 @@ export default function _layout() {
         name="index"
         options={{
           title: "index",
-          tabBarIcon: ({ color, size }) => <House size={28} color="#fff" />,
+          tabBarIcon: ({ focused, color, size }) => (
+            <Tabicon
+              focused={focused}
+              icon={House}
+              iconname="house"
+              size={28}
+              color="#111827"
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="request"
         options={{
           title: "request",
-          tabBarIcon: ({ color, size }) => (
-            <CalendarClockIcon size={28} color="#fff" />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Tabicon
+              focused={focused}
+              icon={CalendarClockIcon}
+              iconname="calendar-clock"
+              size={28}
+              color="#111827"
+            />
           ),
         }}
       />
@@ -40,7 +63,15 @@ export default function _layout() {
         name="reservation"
         options={{
           title: "reservation",
-          tabBarIcon: ({ color, size }) => <Send size={28} color="#fff" />,
+          tabBarIcon: ({ focused, color, size }) => (
+            <Tabicon
+              focused={focused}
+              icon={Send}
+              iconname="send"
+              size={28}
+              color="#111827"
+            />
+          ),
         }}
       />
     </Tabs>
