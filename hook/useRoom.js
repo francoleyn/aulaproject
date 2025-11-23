@@ -1,8 +1,26 @@
 import { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
 
-const API_URL = "http://10.0.2.2:5001/api/rooms";
+const getApiUrl = () => {
+  // For Expo Go, use the debugger host
+  const debuggerHost = Constants.expoConfig?.hostUri?.split(":").shift();
 
+  if (debuggerHost) {
+    return `http://${debuggerHost}:5001/api/rooms`;
+  }
+
+  // Fallback for emulator
+  if (Platform.OS === "android") {
+    return "http://10.0.2.2:5001/api/rooms";
+  }
+
+  // iOS simulator
+  return "http://localhost:5001/api/rooms";
+};
+
+const API_URL = getApiUrl();
 export const useRoom = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

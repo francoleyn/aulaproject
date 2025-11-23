@@ -1,8 +1,26 @@
 import { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
 
-// For Android Emulator - use 10.0.2.2 instead of localhost
-const API_URL = "http://10.0.2.2:5001/api/reservations";
+const getApiUrl = () => {
+  // For Expo Go, use the debugger host
+  const debuggerHost = Constants.expoConfig?.hostUri?.split(":").shift();
+
+  if (debuggerHost) {
+    return `http://${debuggerHost}:5001/api/reservations`;
+  }
+
+  // Fallback for emulator
+  if (Platform.OS === "android") {
+    return "http://10.0.2.2:5001/api/reservations";
+  }
+
+  // iOS simulator
+  return "http://localhost:5001/api/reservations";
+};
+
+const API_URL = getApiUrl();
 
 export const useReservation = () => {
   const [loading, setLoading] = useState(false);
