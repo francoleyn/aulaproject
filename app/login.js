@@ -1,25 +1,26 @@
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useAuth } from "../hook/useAuth.js";
-import { useRouter } from "expo-router";
 
 export default function Login() {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const { login, loading, error } = useAuth();
   const router = useRouter();
 
   const handleLogin = async () => {
-    // Validation
     if (!userName.trim() || !password.trim()) {
       Alert.alert("Error", "Please fill in all fields");
       return;
@@ -29,7 +30,6 @@ export default function Login() {
 
     if (result.success) {
       Alert.alert("Success", "Login successful!");
-      // Navigate to the tabs group which contains dashboard
       router.replace("/(tabs)");
     } else {
       Alert.alert("Login Failed", result.error || "Invalid credentials");
@@ -39,57 +39,97 @@ export default function Login() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
+      className="flex-1"
     >
-      <View className="flex-1 justify-center px-8">
-        <Text className="text-4xl font-bold text-gray-800 mb-2">
-          Welcome Back
-        </Text>
-        <Text className="text-base text-gray-600 mb-10">
-          Login to your account
-        </Text>
+      <View className="flex-1 bg-[#071020] justify-center px-8">
 
-        <View className="mb-5">
-          <TextInput
-            className="bg-gray-100 rounded-xl p-4 text-base border border-gray-200"
-            placeholder="Username"
-            value={userName}
-            onChangeText={setUserName}
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!loading}
-          />
+     
+        <View className="items-center mb-12">
+          {/* AULA TITLE */}
+          <Text
+            className="font-extrabold mt-6"
+            style={{
+              fontSize: 58,
+              color: "#60A5FA",
+              textShadowColor: "rgba(0,0,0,0.5)",
+              textShadowOffset: { width: 1, height: 1 },
+              textShadowRadius: 4,
+            }}
+          >
+            Aula
+          </Text>
         </View>
 
-        <View className="mb-5">
-          <TextInput
-            className="bg-gray-100 rounded-xl p-4 text-base border border-gray-200"
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            editable={!loading}
-          />
-        </View>
+        {/* LOGIN CARD */}
+        <View className="bg-[#101b2d] p-8 rounded-3xl shadow-lg border border-[#1f2d40]">
+          
+          <Text className="text-3xl font-bold text-white mb-2">
+            Welcome Back
+          </Text>
 
-        {error && (
-          <Text className="text-red-500 text-sm mb-3 text-center">{error}</Text>
-        )}
+          <Text className="text-base text-gray-400 mb-8">
+            Login to your account
+          </Text>
 
-        <TouchableOpacity
-          className={`bg-blue-500 rounded-xl p-4 items-center mt-2 ${
-            loading ? "opacity-50" : ""
-          }`}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text className="text-white text-lg font-semibold">Login</Text>
+          {/* USERNAME FIELD */}
+          <View className="mb-6">
+            <TextInput
+              className="bg-[#1A2433] text-white rounded-xl p-4 text-base border border-[#2f4a69]"
+              placeholder="Username"
+              placeholderTextColor="#6B7280"
+              value={userName}
+              onChangeText={setUserName}
+              autoCapitalize="none"
+              editable={!loading}
+            />
+          </View>
+
+          {/* PASSWORD FIELD */}
+          <View className="mb-6 relative">
+            <TextInput
+              className="bg-[#1A2433] text-white rounded-xl p-4 text-base border border-[#2f4a69] pr-12"
+              placeholder="Password"
+              placeholderTextColor="#6B7280"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              editable={!loading}
+            />
+
+            {/* SHOW / HIDE TOGGLE */}
+            <TouchableOpacity
+              className="absolute right-4 top-4"
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Text className="text-blue-400 font-semibold">
+                {showPassword ? "Hide" : "Show"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* ERROR MESSAGE */}
+          {error && (
+            <Text className="text-red-400 text-sm mb-3 text-center">
+              {error}
+            </Text>
           )}
-        </TouchableOpacity>
+
+          {/* LOGIN BUTTON */}
+          <TouchableOpacity
+            className={`bg-blue-600 rounded-xl p-4 items-center mt-2 ${
+              loading ? "opacity-50" : ""
+            }`}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-white text-lg font-semibold">Login</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
