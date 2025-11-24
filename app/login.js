@@ -97,7 +97,7 @@ export default function Login() {
               editable={!loading}
             />
 
-            {/* SHOW / HIDE TOGGLE */}
+            {/* SHOW / HIDE TOGGLE  */}
             <TouchableOpacity
               className="absolute right-4 top-4"
               onPress={() => setShowPassword(!showPassword)}
@@ -108,7 +108,7 @@ export default function Login() {
             </TouchableOpacity>
           </View>
 
-          {/* ERROR MESSAGE */}
+          {/* Show ERROR MESSAGE */}
           {error && (
             <Text className="text-red-400 text-sm mb-3 text-center">
               {error}
