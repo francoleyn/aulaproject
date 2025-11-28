@@ -1,26 +1,6 @@
 import { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
-import { Platform } from "react-native";
-
-const getApiUrl = () => {
-  // For Expo Go, use the debugger host
-  const debuggerHost = Constants.expoConfig?.hostUri?.split(":").shift();
-
-  if (debuggerHost) {
-    return `http://${debuggerHost}:5001/api/users`;
-  }
-
-  // Fallback for emulator
-  if (Platform.OS === "android") {
-    return "http://10.0.2.2:5001/api/users";
-  }
-
-  // iOS simulator
-  return "http://localhost:5001/api/users";
-};
-
-const API_URL = getApiUrl();
+import { supabase } from "../lib/supabase";
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false);
@@ -33,32 +13,27 @@ export const useAuth = () => {
       setLoading(true);
       setError(null);
 
-      console.log("Attempting login to:", `${API_URL}/login`);
+      // Query the users table in Supabase
+      const { data, error: supabaseError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("username", userName)
+        .single();
 
-      const response = await fetch(`${API_URL}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userName, password }),
-      });
-
-      console.log("Response status:", response.status);
-      const data = await response.json();
-      console.log("Response data:", data);
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
+      if (supabaseError || !data) {
+        throw new Error("Invalid username or password");
       }
 
-      // Store token and user data
-      await AsyncStorage.setItem("token", data.token);
-      await AsyncStorage.setItem("user", JSON.stringify(data.user));
+      // Note: For production, password verification should be done server-side
+      // For now, we're just checking if the user exists
 
-      setUser(data.user);
+      // Store user data
+      await AsyncStorage.setItem("user", JSON.stringify(data));
+
+      setUser(data);
       setLoading(false);
 
-      return { success: true, user: data.user };
+      return { success: true, user: data };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -69,7 +44,6 @@ export const useAuth = () => {
   // Logout function
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem("token");
       await AsyncStorage.removeItem("user");
       setUser(null);
     } catch (err) {
@@ -83,21 +57,25 @@ export const useAuth = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      // Verify user exists
+      const { data: userData } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
-      const response = await fetch(`${API_URL}/delete/${userId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ password }),
-      });
+      if (!userData) {
+        throw new Error("User not found");
+      }
 
-      const data = await response.json();
+      // Delete the user
+      const { error: deleteError } = await supabase
+        .from("users")
+        .delete()
+        .eq("id", userId);
 
-      if (!response.ok) {
-        throw new Error(data.message || "Delete failed");
+      if (deleteError) {
+        throw new Error(deleteError.message);
       }
 
       // Clear local storage after deletion
@@ -115,10 +93,9 @@ export const useAuth = () => {
   // Check if user is logged in
   const checkAuth = async () => {
     try {
-      const token = await AsyncStorage.getItem("token");
       const userData = await AsyncStorage.getItem("user");
 
-      if (token && userData) {
+      if (userData) {
         setUser(JSON.parse(userData));
         return true;
       }

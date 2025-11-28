@@ -1,26 +1,6 @@
 import { useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
-import { Platform } from "react-native";
+import { supabase } from "../lib/supabase";
 
-const getApiUrl = () => {
-  // For Expo Go, use the debugger host
-  const debuggerHost = Constants.expoConfig?.hostUri?.split(":").shift();
-
-  if (debuggerHost) {
-    return `http://${debuggerHost}:5001/api/rooms`;
-  }
-
-  // Fallback for emulator
-  if (Platform.OS === "android") {
-    return "http://10.0.2.2:5001/api/rooms";
-  }
-
-  // iOS simulator
-  return "http://localhost:5001/api/rooms";
-};
-
-const API_URL = getApiUrl();
 export const useRoom = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -32,23 +12,15 @@ export const useRoom = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("rooms")
+        .select("*");
 
-      const response = await fetch(API_URL, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch rooms");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
-      setRooms(data);
+      setRooms(data || []);
       setLoading(false);
       return { success: true, data };
     } catch (err) {
@@ -64,39 +36,34 @@ export const useRoom = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
-      const { roomNum, floorNum, capacity, status } = roomData;
+      const { roomNum, floorNum, capacity, status, bldg } = roomData;
 
       // Validate input
       if (!roomNum || !floorNum || !capacity || status === undefined) {
         throw new Error("All fields are required");
       }
 
-      const response = await fetch(`${API_URL}/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          roomNum,
-          floorNum,
-          capacity,
-          status,
-        }),
-      });
+      const { data, error: supabaseError } = await supabase
+        .from("rooms")
+        .insert({
+          roomnum: roomNum,
+          floornum: floorNum,
+          capacity: capacity,
+          status: status,
+          bldg: bldg,
+        })
+        .select()
+        .single();
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create room");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       // Refresh room list
       await getRooms();
 
       setLoading(false);
-      return { success: true, room: data.rooms };
+      return { success: true, room: data };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -110,28 +77,22 @@ export const useRoom = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("rooms")
+        .update(roomData)
+        .eq("id", id)
+        .select()
+        .single();
 
-      const response = await fetch(`${API_URL}/update/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(roomData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update room");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       // Refresh room list
       await getRooms();
 
       setLoading(false);
-      return { success: true, room: data.room };
+      return { success: true, room: data };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -145,19 +106,13 @@ export const useRoom = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { error: supabaseError } = await supabase
+        .from("rooms")
+        .delete()
+        .eq("id", id);
 
-      const response = await fetch(`${API_URL}/delete/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete room");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       // Refresh room list
@@ -178,21 +133,13 @@ export const useRoom = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { error: supabaseError } = await supabase
+        .from("rooms")
+        .update({ status: !currentStatus })
+        .eq("id", id);
 
-      const response = await fetch(`${API_URL}/update/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: !currentStatus }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to toggle room status");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       // Refresh room list

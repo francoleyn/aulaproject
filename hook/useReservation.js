@@ -1,26 +1,5 @@
 import { useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
-import { Platform } from "react-native";
-
-const getApiUrl = () => {
-  // For Expo Go, use the debugger host
-  const debuggerHost = Constants.expoConfig?.hostUri?.split(":").shift();
-
-  if (debuggerHost) {
-    return `http://${debuggerHost}:5001/api/reservations`;
-  }
-
-  // Fallback for emulator
-  if (Platform.OS === "android") {
-    return "http://10.0.2.2:5001/api/reservations";
-  }
-
-  // iOS simulator
-  return "http://localhost:5001/api/reservations";
-};
-
-const API_URL = getApiUrl();
+import { supabase } from "../lib/supabase";
 
 export const useReservation = () => {
   const [loading, setLoading] = useState(false);
@@ -33,23 +12,16 @@ export const useReservation = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("reservations")
+        .select("*")
+        .eq("userid", userID);
 
-      const response = await fetch(`${API_URL}/${userID}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch reservations");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
-      setReservations(data);
+      setReservations(data || []);
       setLoading(false);
       return { success: true, data };
     } catch (err) {
@@ -65,27 +37,18 @@ export const useReservation = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("reservations")
+        .insert(reservationData)
+        .select()
+        .single();
 
-      console.log("Creating reservation:", reservationData);
-
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(reservationData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create reservation");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       setLoading(false);
-      return { success: true, reservation: data.reservations };
+      return { success: true, reservation: data };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -99,24 +62,17 @@ export const useReservation = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { error: supabaseError } = await supabase
+        .from("reservations")
+        .delete()
+        .eq("id", reservationId);
 
-      const response = await fetch(`${API_URL}/${reservationId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to delete reservation");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       setLoading(false);
-      return { success: true, message: data.message };
+      return { success: true, message: "Reservation deleted successfully" };
     } catch (err) {
       setError(err.message);
       setLoading(false);

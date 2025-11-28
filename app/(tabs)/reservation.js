@@ -85,14 +85,14 @@ export default function Reservation() {
     }
 
     const reservationData = {
-      userID: user.id || user.userID,
-      roomID: selectedRoom.id,
-      roomNum: selectedRoom.roomnum,
+      userid: user.id || user.userID,
+      roomid: selectedRoom.id,
+      roomnum: selectedRoom.roomnum,
       bldg: selectedRoom.bldg,
       date: selectedDate.toISOString().split("T")[0],
-      startTime: startTime.toTimeString().split(" ")[0],
-      endTime: endTime.toTimeString().split(" ")[0],
-      numberOfHours: numberOfHours,
+      starttime: startTime.toTimeString().split(" ")[0],
+      endtime: endTime.toTimeString().split(" ")[0],
+      numberofhours: numberOfHours,
       status: false, // Pending approval
     };
 

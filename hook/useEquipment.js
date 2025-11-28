@@ -1,26 +1,5 @@
 import { useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
-import { Platform } from "react-native";
-
-const getApiUrl = () => {
-  // For Expo Go, use the debugger host
-  const debuggerHost = Constants.expoConfig?.hostUri?.split(":").shift();
-
-  if (debuggerHost) {
-    return `http://${debuggerHost}:5001/api/room`;
-  }
-
-  // Fallback for emulator
-  if (Platform.OS === "android") {
-    return "http://10.0.2.2:5001/api/room";
-  }
-
-  // iOS simulator
-  return "http://localhost:5001/api/room";
-};
-
-const API_URL = getApiUrl();
+import { supabase } from "../lib/supabase";
 
 export const useEquipment = () => {
   const [loading, setLoading] = useState(false);
@@ -33,23 +12,15 @@ export const useEquipment = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("equipments")
+        .select("*");
 
-      const response = await fetch(`${API_URL}/equipments`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch equipments");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
-      setEquipments(data.equipments);
+      setEquipments(data || []);
       setLoading(false);
       return { success: true, data };
     } catch (err) {
@@ -65,24 +36,18 @@ export const useEquipment = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("equipments")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-      const response = await fetch(`${API_URL}/equipments/${id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch equipment");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       setLoading(false);
-      return { success: true, equipment: data.equipment };
+      return { success: true, equipment: data };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -90,29 +55,22 @@ export const useEquipment = () => {
     }
   };
 
-  // Get room equipments
+  // Get room equipments (via roomequipments join table)
   const getRoomEquipments = async (roomId) => {
     try {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("roomequipments")
+        .select("*, equipments(*)")
+        .eq("room_id", roomId);
 
-      const response = await fetch(`${API_URL}/${roomId}/equipments`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch room equipments");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
-      setEquipments(data.equipments);
+      setEquipments(data || []);
       setLoading(false);
       return { success: true, data };
     } catch (err) {
@@ -122,29 +80,22 @@ export const useEquipment = () => {
     }
   };
 
-  // Get room details with equipments (for Room Details Modal)
+  // Get room details with equipments
   const getRoomDetails = async (roomId) => {
     try {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("roomequipments")
+        .select("*, equipments(*)")
+        .eq("room_id", roomId);
 
-      const response = await fetch(`${API_URL}/${roomId}/details`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch room details");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
-      setEquipments(data.equipments);
+      setEquipments(data || []);
       setLoading(false);
       return { success: true, data };
     } catch (err) {
@@ -160,27 +111,18 @@ export const useEquipment = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("equipments")
+        .insert(equipmentData)
+        .select()
+        .single();
 
-      console.log("Creating equipment:", equipmentData);
-
-      const response = await fetch(`${API_URL}/equipments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(equipmentData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create equipment");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       setLoading(false);
-      return { success: true, equipment: data.equipment };
+      return { success: true, equipment: data };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -194,25 +136,19 @@ export const useEquipment = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("equipments")
+        .update(equipmentData)
+        .eq("id", id)
+        .select()
+        .single();
 
-      const response = await fetch(`${API_URL}/equipments/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(equipmentData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update equipment");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       setLoading(false);
-      return { success: true, equipment: data.equipment };
+      return { success: true, equipment: data };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -226,24 +162,17 @@ export const useEquipment = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { error: supabaseError } = await supabase
+        .from("equipments")
+        .delete()
+        .eq("id", id);
 
-      const response = await fetch(`${API_URL}/equipments/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to delete equipment");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       setLoading(false);
-      return { success: true, message: data.message };
+      return { success: true, message: "Equipment deleted successfully" };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -257,27 +186,22 @@ export const useEquipment = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("roomequipments")
+        .insert({
+          room_id: roomId,
+          equipment_id: equipmentData.equipment_id,
+          quantity: equipmentData.quantity || 1,
+        })
+        .select()
+        .single();
 
-      console.log("Adding equipment to room:", roomId, equipmentData);
-
-      const response = await fetch(`${API_URL}/${roomId}/equipments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(equipmentData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to add equipment to room");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       setLoading(false);
-      return { success: true, roomEquipment: data.roomEquipment };
+      return { success: true, roomEquipment: data };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -291,28 +215,20 @@ export const useEquipment = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { data, error: supabaseError } = await supabase
+        .from("roomequipments")
+        .update({ quantity })
+        .eq("room_id", roomId)
+        .eq("equipment_id", equipmentId)
+        .select()
+        .single();
 
-      const response = await fetch(
-        `${API_URL}/${roomId}/equipments/${equipmentId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ quantity }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update room equipment");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       setLoading(false);
-      return { success: true, roomEquipment: data.roomEquipment };
+      return { success: true, roomEquipment: data };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -326,27 +242,18 @@ export const useEquipment = () => {
       setLoading(true);
       setError(null);
 
-      const token = await AsyncStorage.getItem("token");
+      const { error: supabaseError } = await supabase
+        .from("roomequipments")
+        .delete()
+        .eq("room_id", roomId)
+        .eq("equipment_id", equipmentId);
 
-      const response = await fetch(
-        `${API_URL}/${roomId}/equipments/${equipmentId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to remove equipment from room");
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
       }
 
       setLoading(false);
-      return { success: true, message: data.message };
+      return { success: true, message: "Equipment removed from room" };
     } catch (err) {
       setError(err.message);
       setLoading(false);
