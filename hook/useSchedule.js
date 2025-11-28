@@ -64,7 +64,8 @@ export const useSchedule = () => {
       const { data, error: supabaseError } = await supabase
         .from("schedules")
         .select("*")
-        .eq("roomid", roomId);
+        .eq("roomid", String(roomId))
+        .order("starttime", { ascending: true });
 
       if (supabaseError) {
         throw new Error(supabaseError.message);
@@ -89,7 +90,8 @@ export const useSchedule = () => {
       const { data, error: supabaseError } = await supabase
         .from("schedules")
         .select("*")
-        .eq("dayofweek", day);
+        .eq("dayofweek", day)
+        .order("starttime", { ascending: true });
 
       if (supabaseError) {
         throw new Error(supabaseError.message);
@@ -114,8 +116,9 @@ export const useSchedule = () => {
       const { data, error: supabaseError } = await supabase
         .from("schedules")
         .select("*")
-        .eq("roomid", roomId)
-        .eq("dayofweek", day);
+        .eq("roomid", String(roomId))
+        .eq("dayofweek", day)
+        .order("starttime", { ascending: true });
 
       if (supabaseError) {
         throw new Error(supabaseError.message);

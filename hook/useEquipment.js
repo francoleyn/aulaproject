@@ -61,18 +61,50 @@ export const useEquipment = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error: supabaseError } = await supabase
+      // First, get room equipment entries
+      const { data: roomEquipData, error: roomEquipError } = await supabase
         .from("roomequipments")
-        .select("*, equipments(*)")
-        .eq("roomid", roomId);
+        .select("*")
+        .eq("roomid", String(roomId));
 
-      if (supabaseError) {
-        throw new Error(supabaseError.message);
+      if (roomEquipError) {
+        throw new Error(roomEquipError.message);
       }
 
-      setEquipments(data || []);
+      if (!roomEquipData || roomEquipData.length === 0) {
+        setEquipments([]);
+        setLoading(false);
+        return { success: true, data: [] };
+      }
+
+      // Get unique equipment IDs
+      const equipmentIds = [...new Set(roomEquipData.map((re) => re.equipmentid))];
+
+      // Fetch equipment details
+      const { data: equipmentData, error: equipmentError } = await supabase
+        .from("equipments")
+        .select("*")
+        .in("id", equipmentIds.map(id => parseInt(id)));
+
+      if (equipmentError) {
+        throw new Error(equipmentError.message);
+      }
+
+      // Combine room equipment with equipment details
+      const combined = roomEquipData.map((roomEquip) => {
+        const equipment = equipmentData?.find(
+          (eq) => String(eq.id) === String(roomEquip.equipmentid)
+        );
+        return {
+          ...roomEquip,
+          name: equipment?.name || "Unknown Equipment",
+          description: equipment?.description || "",
+        };
+      });
+
+      setEquipments(combined);
       setLoading(false);
-      return { success: true, data };
+      return { success: true, data: combined };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -86,18 +118,50 @@ export const useEquipment = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error: supabaseError } = await supabase
+      // First, get room equipment entries
+      const { data: roomEquipData, error: roomEquipError } = await supabase
         .from("roomequipments")
-        .select("*, equipments(*)")
-        .eq("roomid", roomId);
+        .select("*")
+        .eq("roomid", String(roomId));
 
-      if (supabaseError) {
-        throw new Error(supabaseError.message);
+      if (roomEquipError) {
+        throw new Error(roomEquipError.message);
       }
 
-      setEquipments(data || []);
+      if (!roomEquipData || roomEquipData.length === 0) {
+        setEquipments([]);
+        setLoading(false);
+        return { success: true, data: [] };
+      }
+
+      // Get unique equipment IDs
+      const equipmentIds = [...new Set(roomEquipData.map((re) => re.equipmentid))];
+
+      // Fetch equipment details
+      const { data: equipmentData, error: equipmentError } = await supabase
+        .from("equipments")
+        .select("*")
+        .in("id", equipmentIds.map(id => parseInt(id)));
+
+      if (equipmentError) {
+        throw new Error(equipmentError.message);
+      }
+
+      // Combine room equipment with equipment details
+      const combined = roomEquipData.map((roomEquip) => {
+        const equipment = equipmentData?.find(
+          (eq) => String(eq.id) === String(roomEquip.equipmentid)
+        );
+        return {
+          ...roomEquip,
+          name: equipment?.name || "Unknown Equipment",
+          description: equipment?.description || "",
+        };
+      });
+
+      setEquipments(combined);
       setLoading(false);
-      return { success: true, data };
+      return { success: true, data: combined };
     } catch (err) {
       setError(err.message);
       setLoading(false);
