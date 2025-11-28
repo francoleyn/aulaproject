@@ -29,8 +29,12 @@ export default function Login() {
     const result = await login(userName.trim(), password);
 
     if (result.success) {
-      Alert.alert("Success", "Login successful!");
-      router.replace("/(tabs)");
+      Alert.alert("Success", "Login successful!", [
+        {
+          text: "OK",
+          onPress: () => router.replace("/(tabs)"),
+        },
+      ]);
     } else {
       Alert.alert("Login Failed", result.error || "Invalid credentials");
     }

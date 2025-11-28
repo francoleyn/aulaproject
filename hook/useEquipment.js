@@ -64,7 +64,7 @@ export const useEquipment = () => {
       const { data, error: supabaseError } = await supabase
         .from("roomequipments")
         .select("*, equipments(*)")
-        .eq("room_id", roomId);
+        .eq("roomid", roomId);
 
       if (supabaseError) {
         throw new Error(supabaseError.message);
@@ -89,7 +89,7 @@ export const useEquipment = () => {
       const { data, error: supabaseError } = await supabase
         .from("roomequipments")
         .select("*, equipments(*)")
-        .eq("room_id", roomId);
+        .eq("roomid", roomId);
 
       if (supabaseError) {
         throw new Error(supabaseError.message);
@@ -102,6 +102,26 @@ export const useEquipment = () => {
       setError(err.message);
       setLoading(false);
       return { success: false, error: err.message };
+    }
+  };
+
+  // Check if room equipment exists
+  const checkRoomEquipmentExists = async (roomId, equipmentId) => {
+    try {
+      const { data, error: supabaseError } = await supabase
+        .from("roomequipments")
+        .select("*")
+        .eq("roomid", roomId)
+        .eq("equipmentid", equipmentId)
+        .single();
+
+      if (supabaseError && supabaseError.code !== "PGRST116") {
+        throw new Error(supabaseError.message);
+      }
+
+      return { exists: !!data, data };
+    } catch (err) {
+      return { exists: false, error: err.message };
     }
   };
 
@@ -180,17 +200,42 @@ export const useEquipment = () => {
     }
   };
 
-  // Add equipment to room
+  // Add equipment to room (checks if exists first, updates quantity if exists)
   const addEquipmentToRoom = async (roomId, equipmentData) => {
     try {
       setLoading(true);
       setError(null);
 
+      // Check if the room equipment already exists
+      const { exists, data: existingData } = await checkRoomEquipmentExists(
+        roomId,
+        equipmentData.equipmentid
+      );
+
+      if (exists) {
+        // Update quantity if already exists
+        const newQuantity = (existingData.quantity || 0) + (equipmentData.quantity || 1);
+        const { data, error: updateError } = await supabase
+          .from("roomequipments")
+          .update({ quantity: newQuantity })
+          .eq("id", existingData.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          throw new Error(updateError.message);
+        }
+
+        setLoading(false);
+        return { success: true, roomEquipment: data, updated: true };
+      }
+
+      // Insert new record if doesn't exist
       const { data, error: supabaseError } = await supabase
         .from("roomequipments")
         .insert({
-          room_id: roomId,
-          equipment_id: equipmentData.equipment_id,
+          roomid: roomId,
+          equipmentid: equipmentData.equipmentid,
           quantity: equipmentData.quantity || 1,
         })
         .select()
@@ -201,7 +246,7 @@ export const useEquipment = () => {
       }
 
       setLoading(false);
-      return { success: true, roomEquipment: data };
+      return { success: true, roomEquipment: data, inserted: true };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -218,8 +263,8 @@ export const useEquipment = () => {
       const { data, error: supabaseError } = await supabase
         .from("roomequipments")
         .update({ quantity })
-        .eq("room_id", roomId)
-        .eq("equipment_id", equipmentId)
+        .eq("roomid", roomId)
+        .eq("equipmentid", equipmentId)
         .select()
         .single();
 
@@ -245,8 +290,8 @@ export const useEquipment = () => {
       const { error: supabaseError } = await supabase
         .from("roomequipments")
         .delete()
-        .eq("room_id", roomId)
-        .eq("equipment_id", equipmentId);
+        .eq("roomid", roomId)
+        .eq("equipmentid", equipmentId);
 
       if (supabaseError) {
         throw new Error(supabaseError.message);
@@ -275,5 +320,6 @@ export const useEquipment = () => {
     addEquipmentToRoom,
     updateRoomEquipment,
     removeEquipmentFromRoom,
+    checkRoomEquipmentExists,
   };
 };

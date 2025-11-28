@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useEquipment } from "../hook/useEquipment";
 import { useSchedule } from "../hook/useSchedule";
+import { useReservation } from "../hook/useReservation";
 
 const RoomDetailsModal = ({ visible, onClose, room }) => {
   const {
@@ -23,8 +24,13 @@ const RoomDetailsModal = ({ visible, onClose, room }) => {
     schedules,
     loading: scheduleLoading,
   } = useSchedule();
+  const {
+    getReservationsByRoomAndDate,
+    loading: reservationLoading,
+  } = useReservation();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [roomReservations, setRoomReservations] = useState([]);
 
   useEffect(() => {
     if (visible && room) {
@@ -41,6 +47,13 @@ const RoomDetailsModal = ({ visible, onClose, room }) => {
       const days = ["Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat"];
       const dayName = days[selectedDate.getDay()];
       await getSchedulesByRoomAndDay(room.id, dayName);
+
+      // Get reservations for this room and date
+      const dateStr = selectedDate.toISOString().split("T")[0];
+      const reservationResult = await getReservationsByRoomAndDate(room.id, dateStr);
+      if (reservationResult.success) {
+        setRoomReservations(reservationResult.data);
+      }
     } catch (error) {
       console.error("Error fetching room data:", error);
     }
@@ -186,7 +199,7 @@ const RoomDetailsModal = ({ visible, onClose, room }) => {
                             }`}
                           />
                           <Text className="text-white text-lg font-semibold flex-1">
-                            {schedule.userName}
+                            {schedule.username}
                           </Text>
                         </View>
                         <View className="flex-row items-center ml-5">
@@ -197,7 +210,7 @@ const RoomDetailsModal = ({ visible, onClose, room }) => {
                           />
                           <Text className="text-gray-400 ml-2">
                             {schedule.timeSlot ||
-                              `${schedule.startTime} - ${schedule.endTime}`}
+                              `${schedule.starttime} - ${schedule.endtime}`}
                           </Text>
                         </View>
                       </View>
@@ -214,6 +227,81 @@ const RoomDetailsModal = ({ visible, onClose, room }) => {
                       </Text>
                     </View>
                   )}
+                </View>
+              )}
+            </View>
+
+            {/* Reservations Section */}
+            <View className="mb-6">
+              <Text className="text-white text-xl font-semibold mb-4">
+                Reservations
+              </Text>
+
+              {reservationLoading ? (
+                <ActivityIndicator color="#10B981" size="small" />
+              ) : roomReservations && roomReservations.length > 0 ? (
+                roomReservations.map((reservation, index) => (
+                  <View
+                    key={index}
+                    className="mb-4 bg-gray-700/50 rounded-xl p-4"
+                  >
+                    <View className="flex-row items-center justify-between mb-2">
+                      <View className="flex-row items-center flex-1">
+                        <View
+                          className={`w-2 h-2 rounded-full mr-3 ${
+                            reservation.status ? "bg-green-500" : "bg-yellow-500"
+                          }`}
+                        />
+                        <Text className="text-white text-lg font-semibold">
+                          Reserved
+                        </Text>
+                      </View>
+                      <View
+                        className={`px-3 py-1 rounded-full ${
+                          reservation.status ? "bg-green-500/20" : "bg-yellow-500/20"
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs font-semibold ${
+                            reservation.status ? "text-green-400" : "text-yellow-400"
+                          }`}
+                        >
+                          {reservation.status ? "Approved" : "Pending"}
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="flex-row items-center ml-5 mb-1">
+                      <Ionicons
+                        name="time-outline"
+                        size={16}
+                        color="#9CA3AF"
+                      />
+                      <Text className="text-gray-400 ml-2">
+                        {reservation.starttime} - {reservation.endtime}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center ml-5">
+                      <Ionicons
+                        name="hourglass-outline"
+                        size={16}
+                        color="#9CA3AF"
+                      />
+                      <Text className="text-gray-400 ml-2">
+                        {reservation.numberofhours} hour(s)
+                      </Text>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <View className="bg-gray-700/50 rounded-xl p-6 items-center">
+                  <Ionicons
+                    name="bookmark-outline"
+                    size={32}
+                    color="#6B7280"
+                  />
+                  <Text className="text-gray-400 mt-2">
+                    No reservations for this date
+                  </Text>
                 </View>
               )}
             </View>
