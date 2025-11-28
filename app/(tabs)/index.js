@@ -13,7 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRoom } from "../../hook/useRoom.js";
 import { useRouter } from "expo-router";
-import { Bell, User } from "lucide-react-native";
+import { User } from "lucide-react-native"; // ✅ Removed Bell icon import
 import RoomDetailsModal from "../../components/roomDetailsModal.js";
 
 export default function Dashboard({ navigation }) {
@@ -81,6 +81,7 @@ export default function Dashboard({ navigation }) {
       {/* Header */}
       <View className="px-6 pt-9 pb-6">
         <View className="flex-row items-center justify-between mb-6">
+          {/* Profile Button */}
           <TouchableOpacity
             className="w-14 h-14 bg-gray-800 rounded-full items-center justify-center"
             onPress={() => router.push("/profile")}
@@ -88,11 +89,11 @@ export default function Dashboard({ navigation }) {
             <User size={28} color="#fff" />
           </TouchableOpacity>
 
+          {/* Title */}
           <Text className="text-white text-xl font-semibold">Dashboard</Text>
 
-          <TouchableOpacity className="w-14 h-14 bg-gray-800 rounded-full items-center justify-center">
-            <Bell size={28} color="#fff" />
-          </TouchableOpacity>
+          {/* Placeholder to keep spacing, replaced Bell with spacer */}
+          <View className="w-14 h-14" />
         </View>
 
         {/* Stats Card */}

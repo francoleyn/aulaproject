@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useReservation } from "../../hook/useReservation.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Bell, User } from "lucide-react-native";
+import { User } from "lucide-react-native"; // ✅ Removed Bell import
 
 export default function Request() {
   const router = useRouter();
@@ -71,10 +71,7 @@ export default function Request() {
       "Cancel Reservation",
       "Are you sure you want to cancel this reservation?",
       [
-        {
-          text: "No",
-          style: "cancel",
-        },
+        { text: "No", style: "cancel" },
         {
           text: "Yes",
           onPress: async () => {
@@ -131,9 +128,8 @@ export default function Request() {
 
         <Text className="text-white text-xl font-semibold">Request</Text>
 
-        <TouchableOpacity className="w-14 h-14 bg-gray-800 rounded-full items-center justify-center">
-          <Bell size={28} color="#fff" />
-        </TouchableOpacity>
+        {/* Spacer to keep layout centered */}
+        <View className="w-14 h-14" />
       </View>
 
       {/* Reservations List */}
@@ -221,12 +217,10 @@ export default function Request() {
 
             {selectedReservation && (
               <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Title */}
                 <Text className="text-white text-3xl text-center font-bold mb-6 mt-2">
                   Reservation Details
                 </Text>
 
-                {/* Room Info */}
                 <View className="mb-6">
                   <Text className="text-gray-400 text-sm mb-2">Room</Text>
                   <Text className="text-white text-2xl font-bold">
@@ -234,7 +228,6 @@ export default function Request() {
                   </Text>
                 </View>
 
-                {/* Building */}
                 <View className="mb-6">
                   <Text className="text-gray-400 text-sm mb-2">Building</Text>
                   <Text className="text-white text-xl">
@@ -242,72 +235,49 @@ export default function Request() {
                   </Text>
                 </View>
 
-                {/* Date */}
-                <View className="mb-6">
-                  <Text className="text-gray-400 text-sm mb-2">Date</Text>
-                  <View className="flex-row items-center">
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color="#3b82f6"
-                    />
-                    <Text className="text-white text-xl ml-2">
-                      {formatDate(selectedReservation.date)}
-                    </Text>
-                  </View>
+                <View className="mb-6 flex-row items-center">
+                  <Ionicons name="calendar-outline" size={20} color="#3b82f6" />
+                  <Text className="text-white text-xl ml-2">
+                    {formatDate(selectedReservation.date)}
+                  </Text>
                 </View>
 
-                {/* Time */}
-                <View className="mb-6">
-                  <Text className="text-gray-400 text-sm mb-2">Time</Text>
-                  <View className="flex-row items-center">
-                    <Ionicons name="time-outline" size={20} color="#3b82f6" />
-                    <Text className="text-white text-xl ml-2">
-                      {formatTime(selectedReservation.starttime)} -{" "}
-                      {formatTime(selectedReservation.endtime)}
-                    </Text>
-                  </View>
+                <View className="mb-6 flex-row items-center">
+                  <Ionicons name="time-outline" size={20} color="#3b82f6" />
+                  <Text className="text-white text-xl ml-2">
+                    {formatTime(selectedReservation.starttime)} -{" "}
+                    {formatTime(selectedReservation.endtime)}
+                  </Text>
                 </View>
 
-                {/* Duration */}
-                <View className="mb-6">
-                  <Text className="text-gray-400 text-sm mb-2">Duration</Text>
-                  <View className="flex-row items-center">
-                    <Ionicons
-                      name="hourglass-outline"
-                      size={20}
-                      color="#3b82f6"
-                    />
-                    <Text className="text-white text-xl ml-2">
-                      {selectedReservation.numberofhours}{" "}
-                      {selectedReservation.numberofhours === 1
-                        ? "hour"
-                        : "hours"}
-                    </Text>
-                  </View>
+                <View className="mb-6 flex-row items-center">
+                  <Ionicons
+                    name="hourglass-outline"
+                    size={20}
+                    color="#3b82f6"
+                  />
+                  <Text className="text-white text-xl ml-2">
+                    {selectedReservation.numberofhours}{" "}
+                    {selectedReservation.numberofhours === 1 ? "hour" : "hours"}
+                  </Text>
                 </View>
 
-                {/* Status */}
-                <View className="mb-8">
-                  <Text className="text-gray-400 text-sm mb-2">Status</Text>
-                  <View
-                    className={`self-start px-6 py-3 rounded-full ${
-                      selectedReservation.status === true ||
-                      selectedReservation.status === "approved"
-                        ? "bg-green-500"
-                        : "bg-red-500"
-                    }`}
-                  >
-                    <Text className="text-white font-semibold text-base">
-                      {selectedReservation.status === true ||
-                      selectedReservation.status === "approved"
-                        ? "Approved"
-                        : "Waiting for Approval"}
-                    </Text>
-                  </View>
+                <View
+                  className={`self-start px-6 py-3 rounded-full mb-8 ${
+                    selectedReservation.status === true ||
+                    selectedReservation.status === "approved"
+                      ? "bg-green-500"
+                      : "bg-red-500"
+                  }`}
+                >
+                  <Text className="text-white font-semibold text-base">
+                    {selectedReservation.status === true ||
+                    selectedReservation.status === "approved"
+                      ? "Approved"
+                      : "Waiting for Approval"}
+                  </Text>
                 </View>
 
-                {/* Cancel Button */}
                 <TouchableOpacity
                   onPress={() => handleDelete(selectedReservation.id)}
                   className="bg-red-500 rounded-2xl py-4 items-center"

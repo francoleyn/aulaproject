@@ -15,7 +15,7 @@ import { useReservation } from "../../hook/useReservation.js";
 import { useRoom } from "../../hook/useRoom.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Bell, User } from "lucide-react-native";
+import { User } from "lucide-react-native"; // ✅ Bell removed
 
 export default function Reservation() {
   const router = useRouter();
@@ -48,21 +48,19 @@ export default function Reservation() {
     }
   };
 
-  const formatDate = (date) => {
-    return date.toLocaleDateString("en-US", {
+  const formatDate = (date) =>
+    date.toLocaleDateString("en-US", {
       month: "long",
       day: "numeric",
       year: "numeric",
     });
-  };
 
-  const formatTime = (time) => {
-    return time.toLocaleTimeString("en-US", {
+  const formatTime = (time) =>
+    time.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
     });
-  };
 
   const calculateHours = () => {
     const diff = endTime.getTime() - startTime.getTime();
@@ -133,22 +131,21 @@ export default function Reservation() {
 
         <Text className="text-white text-xl font-semibold">Reservation</Text>
 
-        <TouchableOpacity className="w-14 h-14 bg-gray-800 rounded-full items-center justify-center">
-          <Bell size={28} color="#fff" />
-        </TouchableOpacity>
+        {/* Spacer keeps layout symmetrical after removing bell */}
+        <View className="w-14 h-14" />
       </View>
 
       <ScrollView
         className="flex-1 px-6 pt-5"
         showsVerticalScrollIndicator={false}
       >
-        {/* Choose Room Dropdown */}
+        {/* Choose Room */}
         <Text className="text-white text-base font-medium mb-3">
           Choose Room
         </Text>
         <TouchableOpacity
           onPress={() => setShowRoomPicker(!showRoomPicker)}
-          className="bg-gray-800  rounded-xl p-4 mb-6 flex-row justify-between items-center"
+          className="bg-gray-800 rounded-xl p-4 mb-6 flex-row justify-between items-center"
         >
           <View className="flex-row items-center flex-1">
             <Ionicons
@@ -170,7 +167,6 @@ export default function Reservation() {
           />
         </TouchableOpacity>
 
-        {/* Room Picker */}
         {showRoomPicker && (
           <View className="bg-gray-800 rounded-xl mb-6 max-h-48">
             <ScrollView>
@@ -202,7 +198,7 @@ export default function Reservation() {
         </Text>
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
-          className="bg-gray-800  rounded-xl p-4 mb-6 flex-row justify-between items-center"
+          className="bg-gray-800 rounded-xl p-4 mb-6 flex-row justify-between items-center"
         >
           <View className="flex-row items-center flex-1">
             <Ionicons
@@ -226,9 +222,7 @@ export default function Reservation() {
             minimumDate={new Date()}
             onChange={(event, selectedDateValue) => {
               setShowDatePicker(Platform.OS === "ios");
-              if (selectedDateValue) {
-                setSelectedDate(selectedDateValue);
-              }
+              if (selectedDateValue) setSelectedDate(selectedDateValue);
             }}
           />
         )}
@@ -239,7 +233,7 @@ export default function Reservation() {
         </Text>
         <TouchableOpacity
           onPress={() => setShowStartPicker(true)}
-          className="bg-gray-800  rounded-xl p-4 mb-6 flex-row justify-between items-center"
+          className="bg-gray-800 rounded-xl p-4 mb-6 flex-row justify-between items-center"
         >
           <View className="flex-row items-center flex-1">
             <Ionicons
@@ -248,9 +242,7 @@ export default function Reservation() {
               color="#9ca3af"
               style={{ marginRight: 10 }}
             />
-            <Text className="text-gray-400 text-sm">
-              {formatTime(startTime)}
-            </Text>
+            <Text className="text-gray-400 text-sm">{formatTime(startTime)}</Text>
           </View>
           <Ionicons name="chevron-down" size={20} color="#9ca3af" />
         </TouchableOpacity>
@@ -263,9 +255,7 @@ export default function Reservation() {
             display="default"
             onChange={(event, selectedTime) => {
               setShowStartPicker(Platform.OS === "ios");
-              if (selectedTime) {
-                setStartTime(selectedTime);
-              }
+              if (selectedTime) setStartTime(selectedTime);
             }}
           />
         )}
@@ -274,7 +264,7 @@ export default function Reservation() {
         <Text className="text-white text-base font-medium mb-3">End Time</Text>
         <TouchableOpacity
           onPress={() => setShowEndPicker(true)}
-          className="bg-gray-800  rounded-xl p-4 mb-6 flex-row justify-between items-center"
+          className="bg-gray-800 rounded-xl p-4 mb-6 flex-row justify-between items-center"
         >
           <View className="flex-row items-center flex-1">
             <Ionicons
@@ -296,9 +286,7 @@ export default function Reservation() {
             display="default"
             onChange={(event, selectedTime) => {
               setShowEndPicker(Platform.OS === "ios");
-              if (selectedTime) {
-                setEndTime(selectedTime);
-              }
+              if (selectedTime) setEndTime(selectedTime);
             }}
           />
         )}
