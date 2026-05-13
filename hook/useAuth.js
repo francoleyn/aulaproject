@@ -24,16 +24,21 @@ export const useAuth = () => {
         throw new Error("Invalid username or password");
       }
 
-      // Note: For production, password verification should be done server-side
-      // For now, we're just checking if the user exists
+      // Verify password
+      if (data.password !== password) {
+        throw new Error("Invalid username or password");
+      }
 
-      // Store user data
-      await AsyncStorage.setItem("user", JSON.stringify(data));
+      // Remove password from stored user data for security
+      const { password: _, ...userWithoutPassword } = data;
 
-      setUser(data);
+      // Store user data (without password)
+      await AsyncStorage.setItem("user", JSON.stringify(userWithoutPassword));
+
+      setUser(userWithoutPassword);
       setLoading(false);
 
-      return { success: true, user: data };
+      return { success: true, user: userWithoutPassword };
     } catch (err) {
       setError(err.message);
       setLoading(false);
