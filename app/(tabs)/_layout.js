@@ -1,7 +1,27 @@
 import { Tabs } from "expo-router";
 import { House, CalendarClockIcon, Send, Bell } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function _layout() {
+  const [isGuest, setIsGuest] = useState(false);
+
+  useEffect(() => {
+    checkGuestStatus();
+  }, []);
+
+  const checkGuestStatus = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        setIsGuest(user.isGuest === true);
+      }
+    } catch (error) {
+      console.error("Error checking guest status:", error);
+    }
+  };
+
   const Tabicon = ({ focused, icon, size, color }) => {
     const IconComponent = icon;
 
@@ -48,6 +68,7 @@ export default function _layout() {
         name="request"
         options={{
           title: "Request",
+          href: isGuest ? null : "/request",
           tabBarIcon: ({ focused, color, size }) => (
             <Tabicon
               focused={focused}
@@ -62,6 +83,7 @@ export default function _layout() {
         name="reservation"
         options={{
           title: "Reservation",
+          href: isGuest ? null : "/reservation",
           tabBarIcon: ({ focused, color, size }) => (
             <Tabicon
               focused={focused}
@@ -76,6 +98,7 @@ export default function _layout() {
         name="notifications"
         options={{
           title: "Notifications",
+          href: isGuest ? null : "/notifications",
           tabBarIcon: ({ focused, color, size }) => (
             <Tabicon
               focused={focused}

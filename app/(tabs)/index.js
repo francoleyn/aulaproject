@@ -13,21 +13,43 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRoom } from "../../hook/useRoom.js";
 import { useRouter } from "expo-router";
-import { User } from "lucide-react-native"; // ✅ Removed Bell icon import
+import { User, LogOut } from "lucide-react-native";
 import RoomDetailsModal from "../../components/roomDetailsModal.js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../../hook/useAuth.js";
 
 export default function Dashboard({ navigation }) {
   const { getRooms, rooms, loading, error } = useRoom();
+  const { logout } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     fetchRooms();
+    checkGuestStatus();
   }, []);
+
+  const checkGuestStatus = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        setIsGuest(user.isGuest === true);
+      }
+    } catch (error) {
+      console.error("Error checking guest status:", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/login");
+  };
 
   const fetchRooms = async () => {
     const result = await getRooms();
@@ -84,16 +106,27 @@ export default function Dashboard({ navigation }) {
           {/* Profile Button */}
           <TouchableOpacity
             className="w-14 h-14 bg-gray-800 rounded-full items-center justify-center"
-            onPress={() => router.push("/profile")}
+            onPress={() => !isGuest && router.push("/profile")}
           >
-            <User size={28} color="#fff" />
+            <User size={28} color={isGuest ? "#6B7280" : "#fff"} />
           </TouchableOpacity>
 
           {/* Title */}
-          <Text className="text-white text-xl font-semibold">Dashboard</Text>
+          <Text className="text-white text-xl font-semibold">
+            {isGuest ? "Student View" : "Dashboard"}
+          </Text>
 
-          {/* Placeholder to keep spacing, replaced Bell with spacer */}
-          <View className="w-14 h-14" />
+          {/* Logout button for students / Spacer for logged-in users */}
+          {isGuest ? (
+            <TouchableOpacity
+              className="w-14 h-14 bg-gray-800 rounded-full items-center justify-center"
+              onPress={handleLogout}
+            >
+              <LogOut size={24} color="#ef4444" />
+            </TouchableOpacity>
+          ) : (
+            <View className="w-14 h-14" />
+          )}
         </View>
 
         {/* Stats Card */}

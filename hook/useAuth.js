@@ -41,6 +41,23 @@ export const useAuth = () => {
     }
   };
 
+  // Continue as student (guest mode - view only)
+  const continueAsStudent = async () => {
+    try {
+      const guestUser = {
+        id: "guest",
+        username: "Student",
+        isGuest: true,
+      };
+      await AsyncStorage.setItem("user", JSON.stringify(guestUser));
+      setUser(guestUser);
+      return { success: true };
+    } catch (err) {
+      console.error("Guest login error:", err);
+      return { success: false, error: err.message };
+    }
+  };
+
   // Logout function
   const logout = async () => {
     try {
@@ -109,6 +126,7 @@ export const useAuth = () => {
   return {
     login,
     logout,
+    continueAsStudent,
     deleteAccount,
     checkAuth,
     loading,

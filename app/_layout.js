@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
-import { Stack, useRouter, useSegments, usePathname } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Stack, usePathname, useRouter, useSegments } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useCallback, useEffect, useState } from "react";
 import "../global.css";
 
 // Keep the splash screen visible while we fetch resources
@@ -76,13 +76,20 @@ export default function RootLayout() {
     if (!isReady) return;
 
     const inAuthGroup = segments[0] === "(tabs)";
+    const onLoginScreen = segments[0] === "login" || pathname === "/login";
 
-    // Only redirect if NOT logged in and trying to access tabs
-    // Don't redirect away from tabs if logged in (let login handle navigation)
-    if (!isLoggedIn && inAuthGroup) {
-      router.replace("/login");
+    if (isLoggedIn) {
+      // User is logged in - redirect to tabs if on login screen or root
+      if (onLoginScreen || pathname === "/") {
+        router.replace("/(tabs)");
+      }
+    } else {
+      // User is NOT logged in - redirect to login if trying to access protected routes
+      if (inAuthGroup) {
+        router.replace("/login");
+      }
     }
-  }, [isReady, isLoggedIn, segments]);
+  }, [isReady, isLoggedIn, segments, pathname]);
 
   if (!isReady) {
     return null;

@@ -17,7 +17,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const { login, loading, error } = useAuth();
+  const { login, continueAsStudent, loading, error } = useAuth();
   const router = useRouter();
 
   const handleLogin = async () => {
@@ -37,6 +37,13 @@ export default function Login() {
       ]);
     } else {
       Alert.alert("Login Failed", result.error || "Invalid credentials");
+    }
+  };
+
+  const handleContinueAsStudent = async () => {
+    const result = await continueAsStudent();
+    if (result.success) {
+      router.replace("/(tabs)");
     }
   };
 
@@ -134,6 +141,20 @@ export default function Login() {
             )}
           </TouchableOpacity>
         </View>
+
+        {/* CONTINUE AS STUDENT */}
+        <TouchableOpacity
+          className="mt-6 py-4 items-center"
+          onPress={handleContinueAsStudent}
+          disabled={loading}
+        >
+          <Text className="text-gray-400 text-base">
+            Continue as a <Text className="text-blue-400 font-semibold">Student</Text>
+          </Text>
+          <Text className="text-gray-500 text-xs mt-1">
+            View available rooms only
+          </Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
